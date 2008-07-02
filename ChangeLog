@@ -1,0 +1,78 @@
+2008-07-03  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+	* status intにしないと死ぬよ
+
+2008-06-23  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* sh dirのみ777 fileは755
+	- find -type d|chmod 755 とか
+	
+2008-06-20  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* 画面再描画, g
+
+2008-06-19  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+	
+	* buy: シャチハタ
+	* 印刷　印鑑の画像
+	* 飛行機予約
+	* 自宅とのmemo 
+
+2008-06-18  Ryohei Yokoyama  <yokoyama.net@gmail.>
+	* present
+	* 印刷　SSL
+	* ヒヤリ　遅刻の件
+	* memory 足りない
+	
+2008-06-17  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* DGO 検索不具合 
+	- とりあえず直した
+	* tmt お客様の声
+	- まだ先
+
+2008-06-11  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* tmt仕様書　
+	- 要件定義 
+	- サイトマップ
+	- 設定詳細 カスタマイズの内容
+	* トップ　定期便追加
+
+2008-06-10  Ryohei Yokoyama  <yokoyama.net@gmail.
+
+	* server define 確認
+	
+2008-06-09  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+	* toma  定期便商品の投入 オプションをやつらは取り込めるのか？
+
+2008-06-04  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* AbstructDisplay.class.php: 
+	* Gof 
+
+2008-06-02  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+	* サムネイル それImageMagicの引数でできる
+	* paj フォーム作成　lupus 必須はある程度こちらで
+	
+2008-05-29  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* lupus	/home/yamahanmt/htdocs/product/epiano-keyboard/community/clavimap/
+	* git commit -m add elisp
+  git push origin master
+	* IP:219.205.185.253
+
+2008-05-28  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* サムネイル作成　ruby
+
+	* todo: 印刷工業会
+	
+2008-05-27  Ryohei Yokoyama  <yokoyama.net@gmail.com>
+
+	* ruby: clgrep　GetoptLongが良い
+	* changelog: Todoを書いてまとめて消す
+	* meadow: 日本語が汚い とりあえずメイリオ
+
+	* js: amazonのスクロールしながらキャッシュが良いインターフェース
+	* HolyGrail: Yahooはのタブは最初だけajaxしてあとはスタイルで隠す
+	* irc: そのうちやる
