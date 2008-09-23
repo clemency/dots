@@ -25,7 +25,7 @@ PROMPT="[$USER@$HOST %~] "
 find-grep () { find . -type f -print | xargs grep -n --binary-files=without-match $@ }
 
 # エイリアスの設定
-alias ls='ls -G -lw'
+alias ls='ls -G -l'
 alias ll='ls -ltr'
 alias vi='vim'
 alias gd='dirs -v; echo -n "select number: "; read newdir; cd +"$newdir"'
