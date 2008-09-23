@@ -14,14 +14,18 @@ export MANPATH=/usr/local/man:/usr/share/man
 ##
 ##PROMPT="%B%n@%m[%(?.%!.ERROR:%?)]%b%% "
 ##precmd() { RPROMPT="[$PWD]" }
-PROMPT="[%(?.%!.ERROR:%?)]%b%% "
-precmd() { RPROMPT="[$PWD]" }
+#PROMPT="[%(?.%!.ERROR:%?)]%b%% "
+#PS1='[\u@\h \W]\$ '
+#precmd() { RPROMPT="[$PWD]" }
+
+PROMPT="[$USER@$HOST %~] "
+
 
 # 関数
 find-grep () { find . -type f -print | xargs grep -n --binary-files=without-match $@ }
 
 # エイリアスの設定
-alias ls='ls -lw'
+alias ls='ls -G -lw'
 alias ll='ls -ltr'
 alias vi='vim'
 alias gd='dirs -v; echo -n "select number: "; read newdir; cd +"$newdir"'
@@ -29,10 +33,10 @@ alias gd='dirs -v; echo -n "select number: "; read newdir; cd +"$newdir"'
 
 # ヒストリの設定
 HISTFILE=~/.histfile
-HISTSIZE=10000
-SAVEHIST=10000
-# 履歴ファイルに時刻を記録
-setopt extended_history
+HISTSIZE=100000                       # メモリ内の履歴の数
+SAVEHIST=100000                       # 保存される履歴の数
+setopt extended_history               # 履歴ファイルに時刻を記録
+function history-all { history -E 1 } # 全履歴の一覧を出力する
 
 # 補完するかの質問は画面を超える時にのみに行う｡
 LISTMAX=0
@@ -67,7 +71,7 @@ setopt NO_beep
 setopt hist_ignore_dups
 
 # 重複したヒストリは追加しない
-#setopt hist_ignore_all_dups
+setopt hist_ignore_all_dups
 
 # ヒストリを呼び出してから実行する間に一旦編集できる状態になる
 setopt hist_verify
@@ -116,3 +120,5 @@ setopt NO_flow_control
 
 export PERL5LIB=$HOME/local/lib/perl5:$HOME/local/lib/perl5/site_perl
 export PATH=$PATH:/usr/bin:/opt/local/bin:/Users/caval/bin:/usr/local/bin/:/opt/local/bin:/Developer/Tools/:~/lib/flex_sdk_2/bin/:/usr/local/mysql/bin:$HOME/local/bin
+
+autoload -U compinit compinit 

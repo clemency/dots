@@ -57,6 +57,7 @@
 (delete-selection-mode 1)
 
 (set-language-environment "Japanese")
+(set-default-coding-systems 'utf-8)
 (set-terminal-coding-system 'utf-8)
 
 (utf-translate-cjk-mode t)
@@ -114,10 +115,8 @@
 
 
 
+(defalias 'perl-mode 'cperl-mode)
 
-(autoload 'cperl-mode
-  "cperl-mode"
-  "alternate mode for editing Perl programs" t)
 (setq cperl-indent-level 4
       cperl-continued-statement-offset 4
       cperl-close-paren-offset -4
@@ -137,20 +136,43 @@
       (append (list (cons "\\.\\(pl\\|pm\\)$" 'cperl-mode))
               auto-mode-alist))
 
-(add-hook 'cperl-mode-hook
-          '(lambda ()
-             (progn
-               (setq indent-tabs-mode nil)
-               (setq tab-width nil)
-               )))
 
 ;;perldoc
-(global-set-key "\M-p" 'cperl-perldoc)	; alt-p
+;; モジュールソースバッファの場合はその場で、
+;; その他のバッファの場合は別ウィンドウに開く。
+(put 'perl-module-thing 'end-op
+     (lambda ()
+       (re-search-forward "\\=[a-zA-Z][a-zA-Z0-9_:]*" nil t)))
+(put 'perl-module-thing 'beginning-op
+     (lambda ()
+       (if (re-search-backward "[^a-zA-Z0-9_:]" nil t)
+           (forward-char)
+         (goto-char (point-min)))))
 
-(global-set-key "\M-p" '(lambda ( ) (interactive)
-;;(require 'w3m)
-;;(w3m-goto-url "http://localhost:8020")
-))
+(defun perldoc-m ()
+  (interactive)
+  (let ((module (thing-at-point 'perl-module-thing))
+        (pop-up-windows t)
+        (cperl-mode-hook nil))
+    (when (string= module "")
+      (setq module (read-string "Module Name: ")))
+    (let ((result (substring (shell-command-to-string (concat "perldoc -m " module)) 0 -1))
+          (buffer (get-buffer-create (concat "*Perl " module "*")))
+          (pop-or-set-flag (string-match "*Perl " (buffer-name))))
+      (if (string-match "No module found for" result)
+          (message "%s" result)
+        (progn
+          (with-current-buffer buffer
+            (toggle-read-only -1)
+            (erase-buffer)
+            (insert result)
+            (goto-char (point-min))
+            (cperl-mode)
+            (toggle-read-only 1)
+            )
+          (if pop-or-set-flag
+              (switch-to-buffer buffer)
+            (display-buffer buffer)))))))
 
 ;;pod-mode
 (require 'pod-mode)
@@ -270,28 +292,31 @@
 )
 
 ;;mew
-;;(autoload 'mew "mew" nil t)
-;(autoload 'mew-send "mew" nil t)
+(autoload 'mew "mew" nil t)
+(autoload 'mew-send "mew" nil t)
 
-;; Optional setup (Read Mail menu for Emacs 21):
-;(if (boundp 'read-mail-command)
-;    (setq read-mail-command 'mew))
+;;Optional setup (Read Mail menu for Emacs 21):
+(if (boundp 'read-mail-command)
+		(setq read-mail-command 'mew))
 
-;; Optional setup (e.g. C-xm for sending a message):
-;;(autoload 'mew-user-agent-compose "mew" nil t)
-;;(if (boundp 'mail-user-agent)
-;;    (setq mail-user-agent 'mew-user-agent))
-;;(If (fboundp 'define-mail-user-agent)
-;;    (define-mail-user-agent
-;;      'mew-user-agent
-;;      'mew-user-agent-compose
-;;      'mew-draft-send-message
-;;      'mew-draft-kill
-;;      'mew-send-hook))
-;;
+;;Optional setup (e.g. C-xm for sending a message):
+(autoload 'mew-user-agent-compose "mew" nil t)
+(if (boundp 'mail-user-agent)
+    (setq mail-user-agent 'mew-user-agent))
+(if (fboundp 'define-mail-user-agent)
+    (define-mail-user-agent
+      'mew-user-agent
+      'mew-user-agent-compose
+      'mew-draft-send-message
+      'mew-draft-kill
+      'mew-send-hook))
+
 
 ;;full screen
-(mac-toggle-max-window)
+(when (eq window-system 'mac)
+  (add-hook 'window-setup-hook
+            (lambda ()
+              (set-frame-parameter nil 'fullscreen 'fullboth))))
 
 ;; ECB
 (setq load-path (cons (expand-file-name "~/elisp/ecb-2.32") load-path))
@@ -329,7 +354,7 @@
 
 (iswitchb-mode t)
 
-(require 'tramp)
+;;(require 'tramp)
 
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
@@ -351,4 +376,73 @@
 (require 'session)
 (add-hook 'after-init-hook 'session-initialize)
 
- (setq default-input-method "MacOSX") 
+(setq default-input-method "MacOSX") 
+
+(define-key key-translation-map [?\x8a5] [?\\])
+(define-key key-translation-map [?\xd5c] [?\\])
+(define-key key-translation-map [?\x40008a5] [?\C-\\])
+(define-key key-translation-map [?\x80008a5] [?\M-\\])
+(define-key key-translation-map [?\xc0008a5] [?\C-\M-\\])
+
+;;migemo
+;;;; c/migemo -- incremental searches by ro-maji
+;; base
+(setq migemo-command "cmigemo")
+(setq migemo-options '("-q" "--emacs" "-i" "\a"))
+(setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict") ; PATH of migemo-dict
+(setq migemo-user-dictionary nil)
+(setq migemo-regex-dictionary nil)
+
+;; use cache
+(setq migemo-use-pattern-alist t)
+(setq migemo-use-frequent-pattern-alist t)
+(setq migemo-pattern-alist-length 1024)
+;; charset encoding
+(setq migemo-coding-system 'utf-8-unix)
+
+(load-library "migemo")
+;; initialization
+(migemo-init)
+
+;;キルリング
+(require 'browse-kill-ring)
+
+
+;;; windows.el
+;; 分割されたウィンドウを切り替えることができる。
+;; さらに、分割形態を保存することもできる。
+;;
+;; キーバインド C-z にを変更。デフォルトは C-c C-w。
+;; 変更しない場合は，以下の 3 行を削除する。
+;; C-z n   前のウィンドウ
+;; C-z p   後のウィンドウ
+;; C-z !   現在のウィンドウを破棄
+;; C-z C-m メニューの表示
+;; C-z ;   ウィンドウの一覧を表示
+(setq win:switch-prefix "\C-z")
+(require 'windows)
+;; 新規にフレームを作らない
+(setq win:use-frame nil)
+(win:startup-with-window)
+;; C-x C-c で終了するとそのときのウィンドウの状態を保存する
+;; C-x C なら保存しない
+(define-key ctl-x-map "\C-c" 'see-you-again)
+(define-key ctl-x-map "C" 'save-buffers-kill-emacs)
+;; *migemo* のようなバッファも保存
+(setq revive:ignore-buffer-pattern "^ \\*")
+;; キーバインドの追加
+(add-hook 'win:add-hook
+    '(lambda ()
+       (define-key win: "\C-c\C-g" 'clgrep)
+       ))
+(define-key win:switch-map "\C-m" 'win-menu)
+(define-key win:switch-map ";" 'win-switch-menu)
+
+;;; C-I でバッファ全体を untabify と indent
+(global-set-key [backtab] 'untabify-and-indent-whole-buffer)
+(defun untabify-and-indent-whole-buffer ()
+  (interactive)
+  (untabify (point-min) (point-max))
+  (indent-region (point-min) (point-max)))
+(setq 'x 
+			(+ 1 3)
