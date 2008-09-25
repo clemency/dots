@@ -2,12 +2,13 @@
 (setq user-mail-address "yokoyama.net@gmail.com")
 
 (setq load-path
-			(append
-			 (list
-				(expand-file-name "~/elisp")
-				(expand-file-name "~/elisp/w3m")
-				)
-			 load-path))
+      (append
+       (list
+        (expand-file-name "~/elisp")
+        (expand-file-name "~/elisp/w3m")
+        (expand-file-name "~/elisp/mew")
+        )
+       load-path))
 
 (cd "~/")
 
@@ -87,13 +88,13 @@
 
 ;;ruby-mode
 (autoload 'ruby-mode
-	"ruby-mode" "Mode for editing ruby source files" t)
+  "ruby-mode" "Mode for editing ruby source files" t)
 (add-hook 'ruby-mode-hook
-					'(lambda ()
-						 (setq tab-width 2)
-						 (setq indent-tabs-mode 't)
-						 (setq ruby-indent-level tab-width)
-						 ))
+          '(lambda ()
+             (setq tab-width 2)
+             (setq indent-tabs-mode 't)
+             (setq ruby-indent-level tab-width)
+             ))
 (setq auto-mode-alist
       (append '(("\\.rb$" . ruby-mode)) auto-mode-alist))
 
@@ -108,9 +109,9 @@
 
 ;; tab and indent
 (add-hook 'ruby-mode-hook
-					'(lambda ()
-						 (inf-ruby-keys) 
-						 (setq tab-width 3)))
+          '(lambda ()
+             (inf-ruby-keys) 
+             (setq tab-width 3)))
 (setq ruby-indent-level 3)
 
 
@@ -177,35 +178,35 @@
 ;;pod-mode
 (require 'pod-mode)
 (add-to-list 'auto-mode-alist
-						 '("\\.pod$" . pod-mode))
+             '("\\.pod$" . pod-mode))
 
 ;;sintax indent
 (defmacro mark-active ( )
   "Xemacs/emacs compatible macro"
   (if (boundp 'mark-active)
-			'mark-active
-		'(mark)))
+      'mark-active
+    '(mark)))
 
 (defun perltidy ( )
   "Run perltidy on the current region or buffer"
   (interactive)
-																				; Inexplicably, save-excursion doesn't work here.
+                                        ; Inexplicably, save-excursion doesn't work here.
   (let ((orig-point (point)))
-		(unless (mark-active) (mark-defun))
-		(shell-command-on-region (point) (mark) "perltidy -q" nil t)
-		(goto-char orig-point)))
+    (unless (mark-active) (mark-defun))
+    (shell-command-on-region (point) (mark) "perltidy -q" nil t)
+    (goto-char orig-point)))
 (global-set-key "\C-ct" 'perltidy)
 
 ;;cperl-prove
 (eval-after-load "cperl-mode"
   '(add-hook 'cperl-mode-hook
-						 (lambda () (local-set-key "\C-cp" 'cperl-prove))))
+             (lambda () (local-set-key "\C-cp" 'cperl-prove))))
 (global-set-key "\C-cp" 'cperl-prove)
 (defun cperl-prove ()
   "Run the current test."
   (interactive)
   (shell-command (concat "prove -v "
-												 (shell-quote-argument (buffer-file-name)))))
+                         (shell-quote-argument (buffer-file-name)))))
 
 (setq inferior-lisp-program "/usr/local/bin/clisp")
 
@@ -213,18 +214,18 @@
   "Run the current test."
   (interactive)
   (shell-command (concat "clisp "
-												 (shell-quote-argument (buffer-file-name)))))
+                         (shell-quote-argument (buffer-file-name)))))
 (defun eval-perl ()
   "Run the current test."
   (interactive)
   (shell-command (concat "perl "
-												 (shell-quote-argument (buffer-file-name)))))
+                         (shell-quote-argument (buffer-file-name)))))
 
 
 (defun  perl-find-module ()
   (interactive)
   (let
-			(end begin module path-to-module)
+      (end begin module path-to-module)
     (save-excursion
       (setq begin (save-excursion (skip-chars-backward "a-zA-Z0-9_:") (point)))
       (setq end (save-excursion (skip-chars-forward "a-zA-Z0-9_:") (point)))
@@ -239,7 +240,7 @@
       )
     (message path-to-module)
     (find-file path-to-module)
-		))
+    ))
 
 (defun perl-generate-etags ()
   "Run the current test."
@@ -250,21 +251,21 @@
   
   (shell-command (concat "perldoc -lm " module) "*perldoc*")
   (save-window-excursion
-		(switch-to-buffer "*perldoc*")
-		(setq end (point))
-		(setq begin (save-excursion (beginning-of-line) (point)))
-		(setq path-to-module (buffer-substring begin end))
-		)
+    (switch-to-buffer "*perldoc*")
+    (setq end (point))
+    (setq begin (save-excursion (beginning-of-line) (point)))
+    (setq path-to-module (buffer-substring begin end))
+    )
   (message path-to-module)
   (shell-command (concat("etags --language=perl " path-to-module)))
 
   "Automatically create tags file."
   (let (tag-file (concat "/Users/caval/TAGS")))
   (message tag-file)
-	;;  (unless (file-exists-p tag-file)
-	;;  (shell-command (concat "prove -v "
-	;;				 (shell-quote-argument (buffer-file-name))))
-	)
+  ;;  (unless (file-exists-p tag-file)
+  ;;  (shell-command (concat "prove -v "
+  ;;         (shell-quote-argument (buffer-file-name))))
+  )
 
 
 ;; タグの自動生成
@@ -278,18 +279,18 @@
 (put 'scroll-left 'disabled nil)
 
 (defun perl-eval (beg end)
-	"Run selected region as Perl code"
-	(interactive "r")
-	(shell-command-on-region beg end "perl")
-	;feeds the region to perl on STDIN
-)
+  "Run selected region as Perl code"
+  (interactive "r")
+  (shell-command-on-region beg end "perl")
+                                        ;feeds the region to perl on STDIN
+  )
 (global-set-key "\M-\C-p" 'perl-eval)
 
 ;; javascript-mode
 (add-to-list 'auto-mode-alist (cons  "\\.\\(js\\|as\\|json\\|jsn\\)\\'" 'javascript-mode))
 (autoload 'javascript-mode "javascript" nil t)
 (setq js-indent-level 4
-)
+      )
 
 ;;mew
 (autoload 'mew "mew" nil t)
@@ -297,7 +298,7 @@
 
 ;;Optional setup (Read Mail menu for Emacs 21):
 (if (boundp 'read-mail-command)
-		(setq read-mail-command 'mew))
+    (setq read-mail-command 'mew))
 
 ;;Optional setup (e.g. C-xm for sending a message):
 (autoload 'mew-user-agent-compose "mew" nil t)
@@ -349,7 +350,7 @@
 
 ;;; エスケープシーケンスを処理する
 (autoload 'ansi-color-for-comint-mode-on "ansi-color"
-          "Set `ansi-color-for-comint-mode' to t." t)
+  "Set `ansi-color-for-comint-mode' to t." t)
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
 (iswitchb-mode t)
@@ -361,9 +362,9 @@
 
 (defun memo ()
   (interactive)e
-    (add-change-log-entry 
-     nil
-     (expand-file-name "~/ChangeLog")))
+  (add-change-log-entry 
+   nil
+   (expand-file-name "~/ChangeLog")))
 (define-key ctl-x-map "M" 'memo)
 
 ;;キルリングのサマリー
@@ -420,7 +421,7 @@
 ;; C-z C-m メニューの表示
 ;; C-z ;   ウィンドウの一覧をc表示
 (setq win:switch-prefix "\C-z")
-(define-key global-map win:switch-prefix win:switch-map)
+(define-key global-map win:switch-prefix nil)
 
 (require 'windows)
 ;; 新規にフレームを作らない
@@ -434,13 +435,13 @@
 (setq revive:ignore-buffer-pattern "^ \\*")
 ;; キーバインドの追加
 (add-hook 'win:add-hook
-    '(lambda ()
-       (define-key win: "\C-c\C-g" 'clgrep)
-       ))
+          '(lambda ()
+             (define-key win: "\C-c\C-g" 'clgrep)
+             ))
 (define-key win:switch-map "\C-m" 'win-menu)
 (define-key win:switch-map ";" 'win-switch-menu)
 
-;;; C-I でバッファ全体を untabify と indent
+;;; backtabでバッファ全体を untabify と indent
 (global-set-key [backtab] 'untabify-and-indent-whole-buffer)
 (defun untabify-and-indent-whole-buffer ()
   (interactive)
@@ -448,3 +449,25 @@
   (indent-region (point-min) (point-max)))
 
 (global-set-key "\C-\\" 'undo)
+
+(setq gtags-mode-hook
+      '(lambda()
+         (define-key gtags-select-mode-map "\M-t" 'gtags-find-tag) ;関数の定義元へ
+         (define-key gtags-select-mode-map "\M-r" 'gtags-find-rtag) ;関数の参照先へ
+         (define-key gtags-select-mode-map "\M-s" 'gtags-find-symbol) ;変数の定義元/参照先へ
+         (define-key gtags-select-mode-map "\M-p" 'gtags-find-pattern)
+         (define-key gtags-select-mode-map "\M-f" 'gtags-find-file) ;ファイルにジャンプ
+         (define-key gtags-select-mode-map [?\C-,] 'gtags-pop-stack))) ;前のバッファに戻る
+
+(require 'anything-config)
+(setq anything-sources (list anything-source-buffers
+														 anything-source-bookmarks
+														 ;;anything-source-recentf
+														 anything-source-file-name-history
+														 anything-source-locate-r
+														 anything-source-complex-command-history))
+(setq anything-type-actions (list anything-actions-buffer
+																	anything-actions-file
+																	anything-actions-sexp))
+
+(anything-iswitchb-setup)
