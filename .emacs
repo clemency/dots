@@ -471,3 +471,5 @@
 																	anything-actions-sexp))
 
 (anything-iswitchb-setup)
+
+(win-load-allconfigurations)
