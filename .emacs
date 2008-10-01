@@ -376,7 +376,7 @@
 (require 'session)
 (add-hook 'after-init-hook 'session-initialize)
 
-;;(setq default-input-method "MacOSX") 
+(setq default-input-method "MacOSX") 
 
 (define-key key-translation-map [?\x8a5] [?\\])
 (define-key key-translation-map [?\xd5c] [?\\])
@@ -410,7 +410,7 @@
 
 ;;; windows.el
 ;; 分割されたウィンドウを切り替えることができる。
-;; さらにu、分割形態を保存することもできる。
+;; さらに、分割形態を保存することもできる。
 ;;
 ;; キーバインド C-z にを変更。デフォルトは C-c C-w。
 ;; 変更しない場合は，以下の 3 行を削除する。
@@ -418,10 +418,8 @@
 ;; C-z p   後のウィンドウ
 ;; C-z !   現在のウィンドウを破棄
 ;; C-z C-m メニューの表示
-;; C-z ;   ウィンドウの一覧をc表示
+;; C-z ;   ウィンドウの一覧を表示
 (setq win:switch-prefix "\C-z")
-(define-key global-map win:switch-prefix win:switch-map)
-
 (require 'windows)
 ;; 新規にフレームを作らない
 (setq win:use-frame nil)
@@ -446,5 +444,5 @@
   (interactive)
   (untabify (point-min) (point-max))
   (indent-region (point-min) (point-max)))
-
-(global-set-key "\C-\\" 'undo)
+(setq 'x 
+			(+ 1 3)
