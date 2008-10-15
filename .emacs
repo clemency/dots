@@ -25,13 +25,6 @@
 
 (load "dired-x")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; wl
-(autoload 'wl "wl" "Wanderlust" t)
-(autoload 'wl-other-frame "wl" "Wanderlust on new frame." t)
-(autoload 'wl-draft "wl-draft" "Write draft with Wanderlust." t)
-
-
 ;;時計表示
 (display-time)
 
@@ -221,7 +214,6 @@
   (shell-command (concat "perl "
                          (shell-quote-argument (buffer-file-name)))))
 
-
 (defun  perl-find-module ()
   (interactive)
   (let
@@ -289,8 +281,7 @@
 ;; javascript-mode
 (add-to-list 'auto-mode-alist (cons  "\\.\\(js\\|as\\|json\\|jsn\\)\\'" 'javascript-mode))
 (autoload 'javascript-mode "javascript" nil t)
-(setq js-indent-level 4
-      )
+(setq js-indent-level 4)
 
 ;;mew
 (autoload 'mew "mew" nil t)
@@ -355,13 +346,11 @@
 
 (iswitchb-mode t)
 
-;;(require 'tramp)
-
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
 
 (defun memo ()
-  (interactive)e
+  (interactive)
   (add-change-log-entry 
    nil
    (expand-file-name "~/ChangeLog")))
@@ -374,10 +363,10 @@
 (recentf-mode)
 
 ;;履歴の保存
-(require 'session)
-(add-hook 'after-init-hook 'session-initialize)
+;;(require 'session)
+;;(add-hook 'after-init-hook 'session-initialize)
 
-(setq default-input-method "MacOSX") 
+;;(setq default-input-method "MacOSX") 
 
 (define-key key-translation-map [?\x8a5] [?\\])
 (define-key key-translation-map [?\xd5c] [?\\])
@@ -411,7 +400,7 @@
 
 ;;; windows.el
 ;; 分割されたウィンドウを切り替えることができる。
-;; さらに、分割形態を保存することもできる。
+;; さらにu、分割形態を保存することもできる。
 ;;
 ;; キーバインド C-z にを変更。デフォルトは C-c C-w。
 ;; 変更しない場合は，以下の 3 行を削除する。
@@ -419,13 +408,10 @@
 ;; C-z p   後のウィンドウ
 ;; C-z !   現在のウィンドウを破棄
 ;; C-z C-m メニューの表示
-;; C-z ;   ウィンドウの一覧を表示
+;; C-z ;   ウィンドウの一覧をc表示
 (setq win:switch-prefix "\C-z")
-<<<<<<< HEAD:.emacs
-=======
 (define-key global-map win:switch-prefix nil)
 
->>>>>>> 6cd9b272e47ddd4a4da7d5c3158bfaf789d79686:.emacs
 (require 'windows)
 ;; 新規にフレームを作らない
 (setq win:use-frame nil)
@@ -450,10 +436,6 @@
   (interactive)
   (untabify (point-min) (point-max))
   (indent-region (point-min) (point-max)))
-<<<<<<< HEAD:.emacs
-(setq 'x 
-			(+ 1 3)
-=======
 
 (global-set-key "\C-\\" 'undo)
 
@@ -467,17 +449,61 @@
          (define-key gtags-select-mode-map [?\C-,] 'gtags-pop-stack))) ;前のバッファに戻る
 
 (require 'anything-config)
-(setq anything-sources (list anything-source-buffers
-														 anything-source-bookmarks
-														 ;;anything-source-recentf
-														 anything-source-file-name-history
-														 anything-source-locate-r
-														 anything-source-complex-command-history))
-(setq anything-type-actions (list anything-actions-buffer
-																	anything-actions-file
-																	anything-actions-sexp))
-
 (anything-iswitchb-setup)
 
-(win-load-allconfigurations)
->>>>>>> 6cd9b272e47ddd4a4da7d5c3158bfaf789d79686:.emacs
+;;(win-load-all-configurations)
+
+;;eshell
+;; Emacs起動時にEshellを起動
+(add-hook 'after-init-hook (lambda() (eshell) ))
+
+;; 補完時に大文字小文字を区別しない
+(setq eshell-cmpl-ignore-case t)
+;; 確認なしでヒストリ保存
+(setq eshell-ask-to-save-history (quote always))
+;; 補完時にサイクルする
+(setq eshell-cmpl-cycle-completions t)
+;;補完候補がこの数値以下だとサイクルせずに候補表示
+(setq eshell-cmpl-cycle-cutoff-length 5)
+;; 履歴で重複を無視する
+(setq eshell-hist-ignoredups t)
+
+;; prompt文字列の変更
+(setq eshell-prompt-function
+      (lambda ()
+        (concat "["(eshell/pwd)
+                (if (= (user-uid) 0) "]\n# " "]$ ")
+                )))
+;; 変更したprompt文字列に合う形でpromptの初まりを指定(C-aで"$ "の次にカーソルがくるようにする)
+;; これの設定を上手くしとかないとタブ補完も効かなくなるっぽい
+(setq eshell-prompt-regexp "^[^#$]*[$#] ")
+
+;;; キーバインドの変更
+(add-hook 'eshell-mode-hook
+          '(lambda ()
+             (progn
+               (define-key eshell-mode-map "\C-a" 'eshell-bol)
+               (define-key eshell-mode-map "\M-p" 'eshell-previous-matching-input-from-input)
+               (define-key eshell-mode-map "\M-n" 'eshell-next-matching-input-from-input)
+               )))
+(add-hook 'after-init-hook (lambda() (eshell)))
+
+(require 'tramp)
+(setq tramp-default-method "sshx")
+(add-to-list
+  'tramp-multi-connection-function-alist
+  '("sshx" tramp-multi-connect-rlogin "ssh -t -t %h -l %u /bin/sh%n"))
+
+
+;;font
+(set-face-attribute 'default nil
+                    :family "monaco"
+                    :height 130)
+
+
+
+
+
+
+
+
