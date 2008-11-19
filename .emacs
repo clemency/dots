@@ -18,251 +18,6 @@
 
 (setq menu-bar-mode nil)
 
-(require 'w3m-load)
-(setq w3m-home-page "http://www.google.com")
-(setq w3m-use-cookies t)
-(setq w3m-cookie-accept-bad-cookies t)
-
-(load "dired-x")
-
-;;時計表示
-(display-time)
-
-;;行全体を削除
-(setq kill-whole-line t)
-
-;;行数列数表示
-(setq line-number-mode t)
-(setq column-number-mode t)
-
-;;C-xlでgoto-lineを実行
-(global-set-key "\C-xl" 'goto-line)
-
-;;タブ幅
-(setq default-tab-width 2)
-
-(define-key global-map "\C-x>" 'indent-region)
-
-;;ツールバー非表示
-(tool-bar-mode 0)
-(menu-bar-mode 0)
-
-;;BSで選択範囲を消す
-(delete-selection-mode 1)
-
-(set-language-environment "Japanese")
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-
-(utf-translate-cjk-mode t)
-
-;;C-hでdelete
-(global-set-key "\C-h" 'backward-delete-char)
-(global-set-key "\177" 'delete-char)
-
-;;モード行の背景, 文字の色を変更
-(set-face-background 'modeline "grey10")
-(set-face-foreground 'modeline "light cyan")
-(set-face-background 'highlight "grey10")
-(set-face-foreground 'highlight "red")
-
-;;color
-(font-lock-mode 1)
-(setq-default transient-mark-mode t)
-
-(setq next-line-add-newline nil)
-
-;;auto-complete
-(global-set-key "\M-/" 'dabbrev-expand)
-(setq dabbrev-case-fold-search nil)
-
-;;paren
-(show-paren-mode t)
-
-;;ruby-mode
-(autoload 'ruby-mode
-  "ruby-mode" "Mode for editing ruby source files" t)
-(add-hook 'ruby-mode-hook
-          '(lambda ()
-             (setq tab-width 2)
-             (setq indent-tabs-mode 't)
-             (setq ruby-indent-level tab-width)
-             ))
-(setq auto-mode-alist
-      (append '(("\\.rb$" . ruby-mode)) auto-mode-alist))
-
-(autoload 'ruby-mode "ruby-mode"
-  "Mode for editing ruby source files" t)
-(setq auto-mode-alist
-      (append '(("¥¥.rb$" . ruby-mode)) auto-mode-alist))
-(setq interpreter-mode-alist (append '(("ruby" . ruby-mode))
-                                     interpreter-mode-alist))
-(autoload 'run-ruby "inf-ruby"
-  "Run an inferior Ruby process")
-
-;; tab and indent
-(add-hook 'ruby-mode-hook
-          '(lambda ()
-             (inf-ruby-keys) 
-             (setq tab-width 3)))
-(setq ruby-indent-level 3)
-
-
-
-(defalias 'perl-mode 'cperl-mode)
-
-(setq cperl-indent-level 4
-      cperl-continued-statement-offset 4
-      cperl-close-paren-offset -4
-      cperl-comment-column 40
-      cperl-highlight-variables-indiscriminately t
-      cperl-indent-parens-as-block t
-      cperl-label-offset -4
-      cperl-tab-always-indent nil
-      cperl-font-lock t)
-(add-hook 'cperl-mode-hook
-          '(lambda ()
-             (progn
-               (setq indent-tabs-mode nil)
-               (setq tab-width nil)
-               )))
-(setq auto-mode-alist
-      (append (list (cons "\\.\\(pl\\|pm\\)$" 'cperl-mode))
-              auto-mode-alist))
-
-
-;;perldoc
-;; モジュールソースバッファの場合はその場で、
-;; その他のバッファの場合は別ウィンドウに開く。
-(put 'perl-module-thing 'end-op
-     (lambda ()
-       (re-search-forward "\\=[a-zA-Z][a-zA-Z0-9_:]*" nil t)))
-(put 'perl-module-thing 'beginning-op
-     (lambda ()
-       (if (re-search-backward "[^a-zA-Z0-9_:]" nil t)
-           (forward-char)
-         (goto-char (point-min)))))
-
-(defun perldoc-m ()
-  (interactive)
-  (let ((module (thing-at-point 'perl-module-thing))
-        (pop-up-windows t)
-        (cperl-mode-hook nil))
-    (when (string= module "")
-      (setq module (read-string "Module Name: ")))
-    (let ((result (substring (shell-command-to-string (concat "perldoc -m " module)) 0 -1))
-          (buffer (get-buffer-create (concat "*Perl " module "*")))
-          (pop-or-set-flag (string-match "*Perl " (buffer-name))))
-      (if (string-match "No module found for" result)
-          (message "%s" result)
-        (progn
-          (with-current-buffer buffer
-            (toggle-read-only -1)
-            (erase-buffer)
-            (insert result)
-            (goto-char (point-min))
-            (cperl-mode)
-            (toggle-read-only 1)
-            )
-          (if pop-or-set-flag
-              (switch-to-buffer buffer)
-            (display-buffer buffer)))))))
-
-;;pod-mode
-(require 'pod-mode)
-(add-to-list 'auto-mode-alist
-             '("\\.pod$" . pod-mode))
-
-;;sintax indent
-(defmacro mark-active ( )
-  "Xemacs/emacs compatible macro"
-  (if (boundp 'mark-active)
-      'mark-active
-    '(mark)))
-
-(defun perltidy ( )
-  "Run perltidy on the current region or buffer"
-  (interactive)
-                                        ; Inexplicably, save-excursion doesn't work here.
-  (let ((orig-point (point)))
-    (unless (mark-active) (mark-defun))
-    (shell-command-on-region (point) (mark) "perltidy -q" nil t)
-    (goto-char orig-point)))
-(global-set-key "\C-ct" 'perltidy)
-
-;;cperl-prove
-(eval-after-load "cperl-mode"
-  '(add-hook 'cperl-mode-hook
-             (lambda () (local-set-key "\C-cp" 'cperl-prove))))
-(global-set-key "\C-cp" 'cperl-prove)
-(defun cperl-prove ()
-  "Run the current test."
-  (interactive)
-  (shell-command (concat "prove -v "
-                         (shell-quote-argument (buffer-file-name)))))
-
-(setq inferior-lisp-program "/usr/local/bin/clisp")
-
-(defun eval-lisp ()
-  "Run the current test."
-  (interactive)
-  (shell-command (concat "clisp "
-                         (shell-quote-argument (buffer-file-name)))))
-(defun eval-perl ()
-  "Run the current test."
-  (interactive)
-  (shell-command (concat "perl "
-                         (shell-quote-argument (buffer-file-name)))))
-
-(defun  perl-find-module ()
-  (interactive)
-  (let
-      (end begin module path-to-module)
-    (save-excursion
-      (setq begin (save-excursion (skip-chars-backward "a-zA-Z0-9_:") (point)))
-      (setq end (save-excursion (skip-chars-forward "a-zA-Z0-9_:") (point)))
-      (setq module (buffer-substring begin end))
-      )
-    (shell-command (concat "perldoc -lm " module) "*perldoc*")
-    (save-window-excursion
-      (switch-to-buffer "*perldoc*")
-      (setq end (point))
-      (setq begin (save-excursion (beginning-of-line) (point)))
-      (setq path-to-module (buffer-substring begin end))
-      )
-    (message path-to-module)
-    (find-file path-to-module)
-    ))
-
-(defun perl-generate-etags ()
-  "Run the current test."
-  (interactive)  
-  (setq begin (save-excursion (skip-chars-backward "a-zA-Z0-9_:") (point)))
-  (setq end (save-excursion (skip-chars-forward "a-zA-Z0-9_:") (point)))
-  (setq module (buffer-substring begin end))
-  
-  (shell-command (concat "perldoc -lm " module) "*perldoc*")
-  (save-window-excursion
-    (switch-to-buffer "*perldoc*")
-    (setq end (point))
-    (setq begin (save-excursion (beginning-of-line) (point)))
-    (setq path-to-module (buffer-substring begin end))
-    )
-  (message path-to-module)
-  (shell-command (concat("etags --language=perl " path-to-module)))
-
-  "Automatically create tags file."
-  (let (tag-file (concat "/Users/caval/TAGS")))
-  (message tag-file)
-  ;;  (unless (file-exists-p tag-file)
-  ;;  (shell-command (concat "prove -v "
-  ;;         (shell-quote-argument (buffer-file-name))))
-  )
-
-
-;; タグの自動生成
-;;(defadvice find-tag (before c-tag-file activate)
-
 (global-set-key "\C-x." 'tags-serach)
 
 ;;triger eshell-command
@@ -331,10 +86,13 @@
 
 
 ;;transparent
-(setq default-frame-alist
-      (append (list
-               '(alpha . (85 25))
-               ) default-frame-alist))
+;;Color
+(if window-system (progn
+   (set-background-color "Black")
+   (set-foreground-color "LightGray")
+   (set-cursor-color "Gray")
+   (set-frame-parameter nil 'alpha 100)
+   ))
 
 ;;window 行ったり来たり
 (windmove-default-keybindings)
@@ -360,7 +118,7 @@
 (autoload 'kill-summary "kill-summary" nil t)
 
 ;;最近使ったファイル　recentf-open-files
-(recentf-mode)
+;;(recentf-mode)
 
 ;;履歴の保存
 ;;(require 'session)
@@ -439,14 +197,17 @@
 
 (global-set-key "\C-\\" 'undo)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; GNU GLOBAL(gtags)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(autoload 'gtags-mode "gtags" "" t)
 (setq gtags-mode-hook
-      '(lambda()
-         (define-key gtags-select-mode-map "\M-t" 'gtags-find-tag) ;関数の定義元へ
-         (define-key gtags-select-mode-map "\M-r" 'gtags-find-rtag) ;関数の参照先へ
-         (define-key gtags-select-mode-map "\M-s" 'gtags-find-symbol) ;変数の定義元/参照先へ
-         (define-key gtags-select-mode-map "\M-p" 'gtags-find-pattern)
-         (define-key gtags-select-mode-map "\M-f" 'gtags-find-file) ;ファイルにジャンプ
-         (define-key gtags-select-mode-map [?\C-,] 'gtags-pop-stack))) ;前のバッファに戻る
+      '(lambda ()
+         (local-set-key "\M-t" 'gtags-find-tag)
+         (local-set-key "\M-r" 'gtags-find-rtag)
+         (local-set-key "\M-s" 'gtags-find-symbol)
+         (local-set-key "\C-t" 'gtags-pop-stack)
+         ))
 
 (require 'anything-config)
 (anything-iswitchb-setup)
@@ -488,22 +249,39 @@
                )))
 (add-hook 'after-init-hook (lambda() (eshell)))
 
-(require 'tramp)
-(setq tramp-default-method "sshx")
-(add-to-list
-  'tramp-multi-connection-function-alist
-  '("sshx" tramp-multi-connect-rlogin "ssh -t -t %h -l %u /bin/sh%n"))
-
+;;(require 'tramp)
+;;(setq tramp-default-method "sshx")
+;;(add-to-list
+;;  'tramp-multi-connection-function-alist
+;;  '("sshx" tramp-multi-connect-rlogin "ssh -t -t %h -l %u /bin/sh%n"))
+;;
 
 ;;font
 (set-face-attribute 'default nil
                     :family "monaco"
-                    :height 130)
+                    :height 160)
 
 
+;;; 使いやすいほうのバッファリスト
+(define-key global-map "\C-x\C-b" 'electric-buffer-list)
 
+;;; 使いやすいほうのディアー
+(load "dired-x")
 
+;;; outline-minor-mode をマシに
 
+;;;; text-mode の時に outline-minor-mode
+(add-hook 'text-mode-hook '(lambda () (outline-minor-mode t)))
 
-
+;;;; fold-dwim 3つ覚えるだけで伸縮自在に
+(autoload 'fold-dwim-toggle
+  "fold-dwim"
+  "try to show any hidden text at the cursor" t)
+(autoload 'fold-dwim-hide-all
+  "fold-dwim" "hide all folds in the buffer" t)
+(autoload 'fold-dwim-show-all
+  "fold-dwim" "show all folds in the buffer" t)
+(define-key global-map "\C-c\C-o" 'fold-dwim-toggle)
+(define-key global-map "\C-c\C-m" 'fold-dwim-hide-all)
+(define-key global-map "\C-c\C-k" 'fold-dwim-show-all)
 
