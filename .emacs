@@ -5,18 +5,257 @@
       (append
        (list
         (expand-file-name "~/elisp")
-        (expand-file-name "~/elisp/w3m")
         (expand-file-name "~/elisp/mew")
+        (expand-file-name "/Applications/Emacs.app/Contents/Resources/share/emacs/site-lisp/w3m")
+        (expand-file-name "~/elisp/navi2ch")
         )
        load-path))
 
 (cd "~/")
-
+(setq inhibit-startup-message t)
 ;;文字コード
 (set-default-coding-systems 'utf-8)
 (set-terminal-coding-system 'utf-8)
 
 (setq menu-bar-mode nil)
+
+(load "dired-x")
+
+;;時計表示
+(display-time)
+
+;;行全体を削除
+(setq kill-whole-line t)
+
+;;行数列数表示
+(setq line-number-mode t)
+(setq column-number-mode t)
+
+;;C-xlでgoto-lineを実行
+(global-set-key "\C-xl" 'goto-line)
+
+;;タブ幅
+(setq default-tab-width 2)
+
+(define-key global-map "\C-x>" 'indent-region)
+
+;;ツールバー非表示
+(tool-bar-mode 0)
+(menu-bar-mode 0)
+
+;;BSで選択範囲を消す
+(delete-selection-mode 1)
+
+(set-language-environment "Japanese")
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+
+;;(utf-translate-cjk-mode t)
+
+;;C-hでdelete
+(global-set-key "\C-h" 'backward-delete-char)
+(global-set-key "\177" 'delete-char)
+
+;;モード行の背景, 文字の色を変更
+(set-face-background 'modeline "grey10")
+(set-face-foreground 'modeline "light cyan")
+(set-face-background 'highlight "grey10")
+(set-face-foreground 'highlight "red")
+
+;;color
+(font-lock-mode 1)
+(setq-default transient-mark-mode t)
+
+(setq next-line-add-newline nil)
+
+;;auto-complete
+(global-set-key "\M-/" 'dabbrev-expand)
+(setq dabbrev-case-fold-search nil)
+
+;;paren
+(show-paren-mode t)
+
+;;ruby-mode
+(autoload 'ruby-mode
+  "ruby-mode" "Mode for editing ruby source files" t)
+(add-hook 'ruby-mode-hook
+          '(lambda ()
+             (setq tab-width 2)
+             (setq indent-tabs-mode 't)
+             (setq ruby-indent-level tab-width)
+             ))
+(setq auto-mode-alist
+      (append '(("\\.rb$" . ruby-mode)) auto-mode-alist))
+
+(autoload 'ruby-mode "ruby-mode"
+  "Mode for editing ruby source files" t)
+(setq auto-mode-alist
+      (append '(("¥¥.rb$" . ruby-mode)) auto-mode-alist))
+(setq interpreter-mode-alist (append '(("ruby" . ruby-mode))
+                                     interpreter-mode-alist))
+(autoload 'run-ruby "inf-ruby"
+  "Run an inferior Ruby process")
+
+;; tab and indent
+(add-hook 'ruby-mode-hook
+          '(lambda ()
+             (inf-ruby-keys) 
+             (setq tab-width 3)))
+(setq ruby-indent-level 3)
+
+(defalias 'perl-mode 'cperl-mode)
+
+(setq cperl-indent-level 4
+      cperl-continued-statement-offset 4
+      cperl-close-paren-offset -4
+      cperl-comment-column 40
+      cperl-highlight-variables-indiscriminately t
+      cperl-indent-parens-as-block t
+      cperl-label-offset -4
+      cperl-tab-always-indent nil
+      cperl-font-lock t)
+(add-hook 'cperl-mode-hook
+          '(lambda ()
+             (progn
+               (setq indent-tabs-mode nil)
+               (setq tab-width nil)
+               )))
+(setq auto-mode-alist
+      (append (list (cons "\\.\\(pl\\|pm\\)$" 'cperl-mode))
+              auto-mode-alist))
+
+
+;;perldoc
+;; モジュールソースバッファの場合はその場で、
+;; その他のバッファの場合は別ウィンドウに開く。
+(put 'perl-module-thing 'end-op
+     (lambda ()
+       (re-search-forward "\\=[a-zA-Z][a-zA-Z0-9_:]*" nil t)))
+(put 'perl-module-thing 'beginning-op
+     (lambda ()
+       (if (re-search-backward "[^a-zA-Z0-9_:]" nil t)
+           (forward-char)
+         (goto-char (point-min)))))
+
+(defun perldoc-m ()
+  (interactive)
+  (let ((module (thing-at-point 'perl-module-thing))
+        (pop-up-windows t)
+        (cperl-mode-hook nil))
+    (when (string= module "")
+      (setq module (read-string "Module Name: ")))
+    (let ((result (substring (shell-command-to-string (concat "perldoc -m " module)) 0 -1))
+          (buffer (get-buffer-create (concat "*Perl " module "*")))
+          (pop-or-set-flag (string-match "*Perl " (buffer-name))))
+      (if (string-match "No module found for" result)
+          (message "%s" result)
+        (progn
+          (with-current-buffer buffer
+            (toggle-read-only -1)
+            (erase-buffer)
+            (insert result)
+            (goto-char (point-min))
+            (cperl-mode)
+            (toggle-read-only 1)
+            )
+          (if pop-or-set-flag
+              (switch-to-buffer buffer)
+            (display-buffer buffer)))))))
+
+;;pod-mode
+(require 'pod-mode)
+(add-to-list 'auto-mode-alist
+             '("\\.pod$" . pod-mode))
+
+;;sintax indent
+(defmacro mark-active ( )
+  "Xemacs/emacs compatible macro"
+  (if (boundp 'mark-active)
+      'mark-active
+    '(mark)))
+
+(defun perltidy ( )
+  "Run perltidy on the current region or buffer"
+  (interactive)
+                                        ; Inexplicably, save-excursion doesn't work here.
+  (let ((orig-point (point)))
+    (unless (mark-active) (mark-defun))
+    (shell-command-on-region (point) (mark) "perltidy -q" nil t)
+    (goto-char orig-point)))
+(global-set-key "\C-ct" 'perltidy)
+
+;;cperl-prove
+(eval-after-load "cperl-mode"
+  '(add-hook 'cperl-mode-hook
+             (lambda () (local-set-key "\C-cp" 'cperl-prove))))
+(global-set-key "\C-cp" 'cperl-prove)
+(defun cperl-prove ()
+  "Run the current test."
+  (interactive)
+  (shell-command (concat "prove -v "
+                         (shell-quote-argument (buffer-file-name)))))
+
+(setq inferior-lisp-program "/usr/local/bin/clisp")
+
+(defun eval-lisp ()
+  "Run the current test."
+  (interactive)
+  (shell-command (concat "clisp "
+                         (shell-quote-argument (buffer-file-name)))))
+(defun eval-perl ()
+  "Run the current test."
+  (interactive)
+  (shell-command (concat "perl "
+                         (shell-quote-argument (buffer-file-name)))))
+
+(defun  perl-find-module ()
+  (interactive)
+  (let
+      (end begin module path-to-module)
+    (save-excursion
+      (setq begin (save-excursion (skip-chars-backward "a-zA-Z0-9_:") (point)))
+      (setq end (save-excursion (skip-chars-forward "a-zA-Z0-9_:") (point)))
+      (setq module (buffer-substring begin end))
+      )
+    (shell-command (concat "perldoc -lm " module) "*perldoc*")
+    (save-window-excursion
+      (switch-to-buffer "*perldoc*")
+      (setq end (point))
+      (setq begin (save-excursion (beginning-of-line) (point)))
+      (setq path-to-module (buffer-substring begin end))
+      )
+    (message path-to-module)
+    (find-file path-to-module)
+    ))
+
+(defun perl-generate-etags ()
+  "Run the current test."
+  (interactive)  
+  (setq begin (save-excursion (skip-chars-backward "a-zA-Z0-9_:") (point)))
+  (setq end (save-excursion (skip-chars-forward "a-zA-Z0-9_:") (point)))
+  (setq module (buffer-substring begin end))
+  
+  (shell-command (concat "perldoc -lm " module) "*perldoc*")
+  (save-window-excursion
+    (switch-to-buffer "*perldoc*")
+    (setq end (point))
+    (setq begin (save-excursion (beginning-of-line) (point)))
+    (setq path-to-module (buffer-substring begin end))
+    )
+  (message path-to-module)
+  (shell-command (concat("etags --language=perl " path-to-module)))
+
+  "Automatically create tags file."
+  (let (tag-file (concat "/Users/caval/TAGS")))
+  (message tag-file)
+  ;;  (unless (file-exists-p tag-file)
+  ;;  (shell-command (concat "prove -v "
+  ;;         (shell-quote-argument (buffer-file-name))))
+  )
+
+
+;; タグの自動生成
+;;(defadvice find-tag (before c-tag-file activate)
 
 (global-set-key "\C-x." 'tags-serach)
 
@@ -65,20 +304,6 @@
             (lambda ()
               (set-frame-parameter nil 'fullscreen 'fullboth))))
 
-;; ECB
-(setq load-path (cons (expand-file-name "~/elisp/ecb-2.32") load-path))
-(load-file "~/elisp/cedet-1.0pre4/common/cedet.el")
-(setq semantic-load-turn-useful-things-on t)
-(require 'ecb)
-(setq ecb-tip-of-the-day nil)
-(setq ecb-windows-width 0.25)
-(defun ecb-toggle ()
-  (interactive)
-  (if ecb-minor-mode
-      (ecb-deactivate)
-    (ecb-activate)))
-(global-set-key [f2] 'ecb-toggle)
-
 ;;color-theme
 (require 'color-theme)
 (color-theme-initialize)
@@ -103,6 +328,15 @@
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
 (iswitchb-mode t)
+(setq iswitchb-buffer-ignore
+      '(
+        "*twittering-wget-buffer*"
+        "*twittering-http-buffer*"
+        "*WoMan-Log*"
+				"*SKK annotation*"
+				"*Completions*"
+        ))
+
 
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
@@ -259,10 +493,29 @@
 ;;font
 (set-face-attribute 'default nil
                     :family "monaco"
-                    :height 160)
+                    :height 125)
+(setq my-font "-*-*-medium-r-normal--14-*-*-*-*-*-fontset-hirakaku")
+(setq fixed-width-use-QuickDraw-for-ascii t)
+(setq mac-allow-anti-aliasing t)
+(if (= emacs-major-version 22)
+    (require 'carbon-font))
+(set-default-font my-font)
+(add-to-list 'default-frame-alist `(font . ,my-font))
+(when (= emacs-major-version 23)
+  (set-fontset-font
+   (frame-parameter nil 'font)
+   'japanese-jisx0208
+   '("Hiragino Kaku Gothic Pro" . "iso10646-1"))
+  (setq face-font-rescale-alist
+	'(("^-apple-hiragino.*" . 1.2)
+	  (".*osaka-bold.*" . 1.2)
+	  (".*osaka-medium.*" . 1.2)
+	  (".*courier-bold-.*-mac-roman" . 1.0)
+	  (".*monaco cy-bold-.*-mac-cyrillic" . 0.9)
+	  (".*monaco-bold-.*-mac-roman" . 0.9)
+	  ("-cdac$" . 1.3))))
 
-
-;;; 使いやすいほうのバッファリスト
+;;;使いやすいほうのバッファリスト
 (define-key global-map "\C-x\C-b" 'electric-buffer-list)
 
 ;;; 使いやすいほうのディアー
@@ -285,3 +538,54 @@
 (define-key global-map "\C-c\C-m" 'fold-dwim-hide-all)
 (define-key global-map "\C-c\C-k" 'fold-dwim-show-all)
 
+(require 'tree-widget)
+(require 'php-mode)
+
+(define-key global-map [?¥] "\\")  ;;
+
+(require 'twittering-mode)
+(setq twittering-username "yokoyama.net@gmail.com")
+(setq twittering-password "caval2")
+
+(require 'navi2ch)
+(if window-system (ns-grabenv "/bin/bash" '("source ~/.zshrc" "printenv")))
+
+(require 'w3m-load)
+(setq w3m-use-cookies t)
+
+;;Color
+(if window-system (progn
+   (set-background-color "Black")
+   (set-foreground-color "LightGray")
+   (set-cursor-color "Gray")
+   (set-frame-parameter nil 'alpha 85)
+   ))
+
+;====================================
+;フレーム位置設定(ウィンドウ） 
+;====================================
+(setq initial-frame-alist
+			(append
+       '((top . 0)    ; フレームの Y 位置(ピクセル数)
+				 (left . 0)    ; フレームの X 位置(ピクセル数)
+				 (width . 160)    ; フレーム幅(文字数)
+				 (height . 65)   ; フレーム高(文字数)
+				 ) initial-frame-alist))
+
+(read-abbrev-file)
+
+(setq backup-inhibited t)
+
+;;dictionay.el
+(global-set-key "\M-d" 'my-search-at-dictionary-app)
+
+
+;;lookup.el
+;; オートロードの設定
+(autoload 'lookup "lookup" nil t)
+(autoload 'lookup-region "lookup" nil t)
+(autoload 'lookup-pattern "lookup" nil t)
+;; キーバインドの設定
+(define-key ctl-x-map "l" 'lookup)
+(define-key ctl-x-map "y" 'lookup-region)
+(define-key ctl-x-map "\C-y" 'lookup-pattern)

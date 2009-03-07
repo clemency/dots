@@ -4,6 +4,8 @@ export LANG='ja_JP.UTF-8'
 # パスの設定
 PATH=/usr/local/bin:$PATH
 export MANPATH=/usr/local/man:/usr/share/man
+export MAGICK_HOME=/usr/local/ImageMagick 
+export PATH=$MAGICK_HOME/bin:$PATH
 
 #-----------------------------------------------------------------
 ## プロンプト
@@ -19,13 +21,13 @@ export MANPATH=/usr/local/man:/usr/share/man
 #precmd() { RPROMPT="[$PWD]" }
 
 PROMPT="[$USER@$HOST %~] "
-
+[ $TERM = "dumb" ] && unsetopt zle
 
 # 関数
 find-grep () { find . -type f -print | xargs grep -n --binary-files=without-match $@ }
 
 # エイリアスの設定
-alias ls='ls -G -l'
+alias ls='ls -G -lw '
 alias ll='ls -ltr'
 alias vi='vim'
 alias gd='dirs -v; echo -n "select number: "; read newdir; cd +"$newdir"'
@@ -119,6 +121,6 @@ setopt auto_cd
 setopt NO_flow_control
 
 export PERL5LIB=$HOME/local/lib/perl5:$HOME/local/lib/perl5/site_perl
-export PATH=$PATH:/usr/bin:/opt/local/bin:/Users/caval/bin:/usr/local/bin/:/opt/local/bin:/Developer/Tools/:~/lib/flex_sdk_2/bin/:/usr/local/mysql/bin:$HOME/local/bin
+export PATH=$PATH:/usr/bin:/opt/local/bin:/Users/caval/bin:/usr/local/bin/:/opt/local/bin:/Developer/Tools/:~/lib/flex_sdk_2/bin/:/usr/local/mysql/bin:$HOME/bin
 
 autoload -U compinit compinit 
