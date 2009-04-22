@@ -493,7 +493,7 @@
 ;;font
 (set-face-attribute 'default nil
                     :family "monaco"
-                    :height 125)
+                    :height 120)
 (setq my-font "-*-*-medium-r-normal--14-*-*-*-*-*-fontset-hirakaku")
 (setq fixed-width-use-QuickDraw-for-ascii t)
 (setq mac-allow-anti-aliasing t)
