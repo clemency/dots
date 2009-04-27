@@ -1,12 +1,14 @@
 (setq user-full-name "Ryohei Yokoyama")
 (setq user-mail-address "yokoyama.net@gmail.com")
 
+(if window-system (ns-grabenv "/opt/local/bin/zsh" '("source ~/.zshrc" "printenv")))
+
 (setq load-path
       (append
        (list
         (expand-file-name "~/elisp")
         (expand-file-name "~/elisp/mew")
-        (expand-file-name "/Applications/Emacs.app/Contents/Resources/share/emacs/site-lisp/w3m")
+        (expand-file-name "/Applications/MacPorts/Emacs.app/Contents/Resources/share/emacs/site-lisp/w3m")
         (expand-file-name "~/elisp/navi2ch")
         )
        load-path))
@@ -369,7 +371,7 @@
 ;;migemo
 ;;;; c/migemo -- incremental searches by ro-maji
 ;; base
-(setq migemo-command "cmigemo")
+(setq migemo-command "/usr/local/bin/cmigemo")
 (setq migemo-options '("-q" "--emacs" "-i" "\a"))
 (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict") ; PATH of migemo-dict
 (setq migemo-user-dictionary nil)
@@ -493,7 +495,7 @@
 ;;font
 (set-face-attribute 'default nil
                     :family "monaco"
-                    :height 120)
+                    :height 125)
 (setq my-font "-*-*-medium-r-normal--14-*-*-*-*-*-fontset-hirakaku")
 (setq fixed-width-use-QuickDraw-for-ascii t)
 (setq mac-allow-anti-aliasing t)
@@ -548,8 +550,8 @@
 (setq twittering-password "caval2")
 
 (require 'navi2ch)
-(if window-system (ns-grabenv "/bin/bash" '("source ~/.zshrc" "printenv")))
 
+(setq w3m-command "/usr/local/bin/w3m")
 (require 'w3m-load)
 (setq w3m-use-cookies t)
 
@@ -572,13 +574,12 @@
 				 (height . 65)   ; フレーム高(文字数)
 				 ) initial-frame-alist))
 
-(read-abbrev-file)
+;;(read-abbrev-file)
 
 (setq backup-inhibited t)
 
 ;;dictionay.el
 (global-set-key "\M-d" 'my-search-at-dictionary-app)
-
 
 ;;lookup.el
 ;; オートロードの設定
